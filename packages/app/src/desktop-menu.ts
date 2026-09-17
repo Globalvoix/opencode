@@ -88,6 +88,7 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       { type: "item", labelKey: "desktop.menu.reloadWebview", action: "view.reload" },
       { type: "item", labelKey: "desktop.menu.restart", action: "app.relaunch" },
       { type: "item", labelKey: "desktop.menu.exportLogs", command: "logs.export" },
+      { type: "item", labelKey: "desktop.menu.signOut", command: "auth.signOut", platforms: ["macos"] },
       { type: "separator" },
       { type: "item", role: "hide" },
       { type: "item", role: "hideOthers" },
@@ -282,6 +283,7 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       { type: "item", labelKey: "desktop.menu.documentation", href: "https://opencode.ai/docs" },
       { type: "item", labelKey: "desktop.menu.supportForum", href: "https://discord.com/invite/opencode" },
       { type: "item", labelKey: "desktop.menu.exportLogs", command: "logs.export" },
+      { type: "item", labelKey: "desktop.menu.signOut", command: "auth.signOut", platforms: ["windows"] },
       { type: "separator" },
       {
         type: "item",

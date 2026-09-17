@@ -49,11 +49,12 @@ import { migrate } from "./migrate"
 import { cleanupStoreFiles } from "./store-cleanup"
 import { startBackgroundCli } from "./background-cli"
 import { setNativeTranslations } from "./native-translations"
+import { startOAuthLoopback } from "./oauth-loopback"
 
 const APP_NAMES: Record<string, string> = {
-  dev: "OpenCode Dev",
-  beta: "OpenCode Beta",
-  prod: "OpenCode",
+  dev: "Thinksoft Dev",
+  beta: "Thinksoft Beta",
+  prod: "Thinksoft",
 }
 const APP_IDS: Record<string, string> = {
   dev: "ai.opencode.desktop.dev",
@@ -138,7 +139,7 @@ const main = Effect.gen(function* () {
     process.env.XDG_STATE_HOME = join(root, "state")
     return root
   })()
-  app.setName(app.isPackaged ? APP_NAMES[CHANNEL] : "OpenCode Dev")
+  app.setName(app.isPackaged ? APP_NAMES[CHANNEL] : "Thinksoft Dev")
   app.setAppUserModelId(appId)
   app.setPath(
     "userData",
@@ -148,6 +149,7 @@ const main = Effect.gen(function* () {
   initializeOldLayoutEligibility(app.getPath("userData"))
   logger = initLogging()
   initCrashReporter()
+  startOAuthLoopback()
 
   const wslServers = createWslServersController(
     app.getVersion(),

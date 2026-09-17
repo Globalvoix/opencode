@@ -42,6 +42,12 @@ export type FatalRendererError = {
   os?: string
 }
 
+export type AuthSession = {
+  userId: string
+  email: string
+  expiresAt: number
+}
+
 export type ElectronAPI = {
   killSidecar: () => Promise<void>
   installCli: () => Promise<string>
@@ -113,4 +119,9 @@ export type ElectronAPI = {
   setForceFocus: (enabled: boolean) => Promise<void>
   recordFatalRendererError: (error: FatalRendererError) => Promise<void>
   setNativeTranslations: (bundle: DesktopNativeBundle) => Promise<void>
+  authGetLoopbackOrigin: () => Promise<string | null>
+  authOpenExternal: (url: string) => Promise<void>
+  authGetSession: () => Promise<AuthSession | null>
+  authSetSession: (userId: string, email: string) => Promise<AuthSession>
+  authSignOut: () => Promise<void>
 }

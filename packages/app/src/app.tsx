@@ -339,6 +339,16 @@ function DesktopCommands() {
         },
       })
     }
+    if (platform.platform === "desktop" && platform.signOut) {
+      commands.push({
+        id: "auth.signOut",
+        title: language.t("command.auth.signOut"),
+        category: language.t("command.category.settings"),
+        onSelect: () => {
+          void platform.signOut?.()
+        },
+      })
+    }
     return commands
   })
 

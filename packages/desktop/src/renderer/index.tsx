@@ -24,6 +24,7 @@ import { render } from "solid-js/web"
 import pkg from "../../package.json"
 import { t } from "./i18n"
 import { initializationData } from "./initialization"
+import { ThinksoftAuthGate } from "./auth/auth-gate"
 import { DesktopFirstLaunchOnboarding } from "./onboarding"
 import { resetZoom, setPinchZoomEnabled, webviewZoom, zoomIn, zoomOut } from "./webview-zoom"
 import { windowFullscreen } from "./window-fullscreen"
@@ -242,6 +243,11 @@ const createPlatform = (windowState: DesktopWindowState): Platform => {
 
     exportDebugLogs: () => window.api.exportDebugLogs(),
 
+    signOut: async () => {
+      await window.api.authSignOut()
+      window.location.reload()
+    },
+
     setForceFocus: (enabled) => window.api.setForceFocus(enabled),
 
     recordFatalRendererError: (error) => window.api.recordFatalRendererError(error),
@@ -324,9 +330,15 @@ window.api.onMenuCommand((id) => {
 listenForDeepLinks()
 
 function LoadingSplash() {
+  // Plain style: renderer-exclusive Tailwind classes are never generated
+  // (the Tailwind build only scans app/ui sources), so utilities would be dead.
   return (
-    <div class="h-dvh w-screen flex flex-col items-center justify-center bg-background-base">
-      <Splash class="w-16 h-20 opacity-50 animate-pulse" />
+    <div
+      style="background: #0a0a0a; height: 100dvh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+    >
+      <div style="width: 64px; height: 80px; opacity: 0.5;">
+        <Splash />
+      </div>
     </div>
   )
 }
@@ -376,6 +388,7 @@ function DesktopRoot(props: { windowState: DesktopWindowState }) {
   function App() {
     const wslServers = useWslServers()
     const language = useLanguage()
+    const [authSession, { refetch: refetchAuthSession }] = createResource(() => window.api.authGetSession())
     const ready = createMemo(
       () => !defaultServer.loading && !sidecar.loading && !locale.loading && !wslServers.isLoading,
     )
@@ -401,24 +414,31 @@ function DesktopRoot(props: { windowState: DesktopWindowState }) {
       ServerConnection.Key.make(availableStartupServer(defaultServer.latest, wslServers.data)),
     )
     return (
-      <Show when={ready()} fallback={<LoadingSplash />}>
-        <Show when={effectiveDefaultServer()} keyed>
-          {(key) => (
-            <AppInterface
-              defaultServer={key}
-              servers={servers()}
-              router={router}
-              startup={onboarding.promise}
-              serverScoped={
-                <DesktopFirstLaunchOnboarding
-                  initialUrl={getLastActiveUrl(platform.windowID ?? "browser")}
-                  onLoaded={onboarding.resolve}
-                />
-              }
-            >
-              <Inner />
-            </AppInterface>
-          )}
+      <Show when={!authSession.loading} fallback={<LoadingSplash />}>
+        <Show
+          when={authSession()}
+          fallback={<ThinksoftAuthGate onAuthenticated={() => void refetchAuthSession()} />}
+        >
+          <Show when={ready()} fallback={<LoadingSplash />}>
+            <Show when={effectiveDefaultServer()} keyed>
+              {(key) => (
+                <AppInterface
+                  defaultServer={key}
+                  servers={servers()}
+                  router={router}
+                  startup={onboarding.promise}
+                  serverScoped={
+                    <DesktopFirstLaunchOnboarding
+                      initialUrl={getLastActiveUrl(platform.windowID ?? "browser")}
+                      onLoaded={onboarding.resolve}
+                    />
+                  }
+                >
+                  <Inner />
+                </AppInterface>
+              )}
+            </Show>
+          </Show>
         </Show>
       </Show>
     )

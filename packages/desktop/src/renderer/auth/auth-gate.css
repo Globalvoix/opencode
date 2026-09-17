@@ -1,0 +1,273 @@
+/* Thinksoft sign-in gate. Self-contained: the renderer's Tailwind build only
+   covers app/ui package sources, so desktop-renderer-exclusive classes would
+   never be generated. Plain CSS keeps this screen deterministic. */
+
+.thinksoft-auth-page {
+  display: flex;
+  min-height: 100dvh;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: #0a0a0a;
+  color: #fafafa;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  padding: 40px 24px;
+  box-sizing: border-box;
+}
+
+.thinksoft-auth-column {
+  display: flex;
+  width: 100%;
+  max-width: 384px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.thinksoft-auth-wordmark {
+  width: 192px;
+  height: auto;
+  color: #fafafa;
+}
+
+.thinksoft-auth-title {
+  margin: 32px 0 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.thinksoft-auth-card {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 24px;
+  border: 1px solid #262626;
+  border-radius: 24px;
+  background: #111113;
+  padding: 32px;
+}
+
+.thinksoft-auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.thinksoft-auth-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.thinksoft-auth-button-secondary {
+  border: 1px solid #333333;
+  background: #1a1a1c;
+  color: #fafafa;
+}
+
+.thinksoft-auth-button-secondary:not(:disabled):hover {
+  background: #242426;
+}
+
+.thinksoft-auth-button-primary {
+  border: 1px solid #fafafa;
+  background: #fafafa;
+  color: #0a0a0a;
+  font-weight: 600;
+}
+
+.thinksoft-auth-button-primary:not(:disabled):hover {
+  background: #e7e7e7;
+}
+
+.thinksoft-auth-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0;
+  color: #737373;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.thinksoft-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.thinksoft-auth-input {
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0 12px;
+  color: #fafafa;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+
+.thinksoft-auth-input::placeholder {
+  color: rgba(250, 250, 250, 0.4);
+}
+
+.thinksoft-auth-input:focus {
+  border-color: rgba(250, 250, 250, 0.4);
+}
+
+.thinksoft-auth-input-code {
+  text-align: center;
+  letter-spacing: 0.2em;
+}
+
+.thinksoft-auth-text {
+  margin: 0;
+  color: #a3a3a3;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.thinksoft-auth-error {
+  margin: 16px 0 0;
+  min-height: 20px;
+  color: #f87171;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.thinksoft-auth-quiet-button {
+  width: 100%;
+  height: 32px;
+  margin-top: 12px;
+  border: none;
+  background: none;
+  color: rgba(250, 250, 250, 0.6);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.thinksoft-auth-quiet-button:hover {
+  color: #fafafa;
+}
+
+.thinksoft-auth-switch {
+  margin-top: 16px;
+  border: none;
+  background: none;
+  color: rgba(250, 250, 250, 0.6);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.thinksoft-auth-switch:hover {
+  color: #fafafa;
+}
+
+.thinksoft-auth-spinner {
+  width: 28px;
+  height: 28px;
+  margin: 4px auto 0;
+  border: 3px solid #333333;
+  border-top-color: #fafafa;
+  border-radius: 50%;
+  animation: thinksoft-auth-spin 0.8s linear infinite;
+}
+
+@keyframes thinksoft-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Light mode follows the stored app color scheme ("opencode-color-scheme")
+   and falls back to the OS preference. */
+
+.thinksoft-auth-page[data-mode="light"] {
+  background: #ffffff;
+  color: #111111;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-title {
+  color: #111111;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-card {
+  border-color: #eaeaea;
+  background: #ffffff;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-button-secondary {
+  border-color: #eaeaea;
+  background: #ffffff;
+  color: #111111;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-button-secondary:not(:disabled):hover {
+  background: #f9f9f9;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-button-primary {
+  border-color: #111111;
+  background: #111111;
+  color: #ffffff;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-button-primary:not(:disabled):hover {
+  background: #2a2a2a;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-divider {
+  color: #888888;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-input {
+  border-color: #e2e2e2;
+  color: #111111;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-input:focus {
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-text {
+  color: #555555;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-error {
+  color: #b42318;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-quiet-button,
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-switch {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-quiet-button:hover,
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-switch:hover {
+  color: #111111;
+}
+
+.thinksoft-auth-page[data-mode="light"] .thinksoft-auth-spinner {
+  border-color: #eaeaea;
+  border-top-color: #111111;
+}

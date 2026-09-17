@@ -7,6 +7,8 @@ import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
 import { parseDesktopNativeBundle, type DesktopNativeBundle } from "@opencode-ai/app/i18n/desktop-native"
 
 import type { FatalRendererError, ServerReadyData, TitlebarTheme } from "../preload/types"
+import { clearAuthSession, getAuthSession, setAuthSession } from "./auth-store"
+import { getOAuthLoopbackOrigin } from "./oauth-loopback"
 import { runDesktopMenuAction } from "./desktop-menu-actions"
 import { setForceFocus } from "./debug"
 import { assertAttachmentBudget, createPickedFileAuthorizations } from "./attachment-picker"
@@ -215,6 +217,25 @@ export function registerIpcHandlers(deps: Deps) {
   ipcMain.on("open-local-file", (_event: IpcMainEvent, url: string) => {
     openLocalFileURL(url)
   })
+
+  ipcMain.handle("auth-get-loopback-origin", () => getOAuthLoopbackOrigin())
+  ipcMain.handle("auth-open-external", (_event: IpcMainInvokeEvent, url: string) => {
+    if (typeof url !== "string") throw new Error("Auth URL must be a string")
+    const parsed = new URL(url)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error("Auth URL must use http or https")
+    }
+    if (parsed.hostname !== "127.0.0.1" && parsed.hostname !== "localhost") {
+      throw new Error("Auth URL must target the local loopback server")
+    }
+    void shell.openExternal(parsed.href)
+  })
+  ipcMain.handle("auth-get-session", () => getAuthSession())
+  ipcMain.handle("auth-set-session", (_event: IpcMainInvokeEvent, userId: unknown, email: unknown) => {
+    if (typeof userId !== "string" || typeof email !== "string") throw new Error("Invalid auth session")
+    return setAuthSession(userId, email)
+  })
+  ipcMain.handle("auth-sign-out", () => clearAuthSession())
 
   ipcMain.handle("open-path", async (_event: IpcMainInvokeEvent, path: string, app?: string) => {
     if (!app) return shell.openPath(path)

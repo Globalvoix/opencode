@@ -133,6 +133,11 @@ const api: ElectronAPI = {
   setForceFocus: (enabled) => ipcRenderer.invoke("set-force-focus", enabled),
   recordFatalRendererError: (error) => ipcRenderer.invoke("record-fatal-renderer-error", error),
   setNativeTranslations: (bundle) => ipcRenderer.invoke("set-native-translations", bundle),
+  authGetLoopbackOrigin: () => ipcRenderer.invoke("auth-get-loopback-origin"),
+  authOpenExternal: (url) => ipcRenderer.invoke("auth-open-external", url),
+  authGetSession: () => ipcRenderer.invoke("auth-get-session"),
+  authSetSession: (userId, email) => ipcRenderer.invoke("auth-set-session", userId, email),
+  authSignOut: () => ipcRenderer.invoke("auth-sign-out"),
 }
 
 contextBridge.exposeInMainWorld("api", api)

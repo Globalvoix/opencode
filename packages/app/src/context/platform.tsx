@@ -116,6 +116,9 @@ type PlatformBase = {
   /** Export collected diagnostic logs (desktop only) */
   exportDebugLogs?(): Promise<string>
 
+  /** Clear the Thinksoft auth session and return to the sign-in gate (desktop only) */
+  signOut?(): Promise<void> | void
+
   /** Force focus styles on interactive elements through desktop devtools (desktop only) */
   setForceFocus?(enabled: boolean): Promise<void>
 

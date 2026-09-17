@@ -121,6 +121,11 @@ export function createHomeProjectsController(home: HomeController) {
     utility: {
       settings: openSettings,
       help: () => platform.openExternal("https://opencode.ai/desktop-feedback"),
+      signOut: platform.signOut
+        ? () => {
+            void platform.signOut?.()
+          }
+        : undefined,
     },
   }
 }
