@@ -30,7 +30,6 @@ import { resetZoom, setPinchZoomEnabled, webviewZoom, zoomIn, zoomOut } from "./
 import { windowFullscreen } from "./window-fullscreen"
 import { availableStartupServer, readyWslConnections } from "./wsl/connections"
 import "./styles.css"
-import { Splash } from "@opencode-ai/ui/logo"
 import { useTheme } from "@opencode-ai/ui/theme/context"
 
 const root = document.getElementById("root")
@@ -336,8 +335,13 @@ function LoadingSplash() {
     <div
       style="background: #0a0a0a; height: 100dvh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center;"
     >
-      <div style="width: 64px; height: 80px; opacity: 0.5;">
-        <Splash />
+      <div style="width: 80px; height: 80px; opacity: 0.6;">
+        <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <rect width="512" height="512" rx="120" fill="#0B0C0F" />
+          <rect x="24" y="24" width="464" height="464" rx="92" fill="none" stroke="white" stroke-width="20" />
+          <path d="M190 175 L270 256 L190 337" fill="none" stroke="white" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="295" y="315" width="92" height="28" rx="14" fill="white" />
+        </svg>
       </div>
     </div>
   )
