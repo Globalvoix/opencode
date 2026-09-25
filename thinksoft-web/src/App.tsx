@@ -103,10 +103,7 @@ export default function App() {
       <Navbar
         onOpenLogin={() => setActiveModal('login')}
         onOpenContactSales={openContactPage}
-        onOpenApply={openApplyPage}
         onOpenTryThinksoft={openDownloadPage}
-        onOpenGateway={openContactPage}
-        onNavigateDownload={openDownloadPage}
         onMenuStateChange={setIsProductMenuOpen}
       />
 
