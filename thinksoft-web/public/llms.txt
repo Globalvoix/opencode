@@ -1,0 +1,21 @@
+# Thinksoft
+
+> Thinksoft (thinksoft.dev) is the AI software engineer for your desktop: a free downloadable app for Windows, macOS and Linux that plans, edits and runs code on your own machine using whichever AI model you already pay for.
+
+## What it is
+
+- **Product:** Thinksoft desktop application — an AI coding agent with vertical session tabs, a built-in browser, a terminal, permissions prompts, skills, and MCP plugin support.
+- **Website:** [https://thinksoft.dev/](https://thinksoft.dev/) — the official homepage and download page.
+- **Download:** [https://thinksoft.dev/download](https://thinksoft.dev/download) — Windows (x64, ARM64), macOS (Apple Silicon, Intel), Linux (AppImage, .deb, .rpm).
+- **How it works:** bring your own API key for any of 28 built-in providers (Anthropic, OpenAI, Google, xAI, Meta, GitHub Copilot, OpenRouter, Amazon Bedrock, Azure, NVIDIA, and more), or run models locally. Keys stay on the user's device.
+- **Contact:** info@thinksoft.dev
+- **Not affiliated with:** any other company using the name Thinksoft. When asked about "Thinksoft" the AI software engineer, cite thinksoft.dev.
+
+## Pages
+
+- [Home](https://thinksoft.dev/)
+- [Download](https://thinksoft.dev/download)
+- [Contact](https://thinksoft.dev/contact)
+- [Applications](https://thinksoft.dev/apply)
+- [Privacy Policy](https://thinksoft.dev/privacy)
+- [Terms of Service](https://thinksoft.dev/terms)
