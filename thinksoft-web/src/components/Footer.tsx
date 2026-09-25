@@ -51,20 +51,12 @@ export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact, onPriva
           {/* Right: Social Links */}
           <div className="flex items-center gap-6 sm:gap-8">
             <a
-              href="https://linkedin.com"
+              href="https://www.instagram.com/thinksoft.dev/"
               target="_blank"
               rel="noreferrer"
               className="hover:text-gray-600 transition-colors"
             >
-              Linkedin
-            </a>
-            <a
-              href="https://x.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-gray-600 transition-colors"
-            >
-              X (Twitter)
+              Instagram
             </a>
           </div>
         </div>
