@@ -171,8 +171,7 @@ jobs:
 
       - name: Publish release
         run: |
-          gh release delete "$TAG" -y || true
-          git push origin ":refs/tags/$TAG" || true
+          gh release delete "$TAG" --cleanup-tag -y || true
           gh release create "$TAG" release/* --target "$REF" --title "Thinksoft $TAG" --notes "Thinksoft desktop builds."
         env:
           GH_TOKEN: ${{ github.token }}
