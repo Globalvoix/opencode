@@ -40,9 +40,7 @@ export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact, onPriva
             <button onClick={onTerms} className="hover:text-gray-600 transition-colors cursor-pointer text-left">
               Terms of service
             </button>
-            <a href="#privacy-choices" className="hover:text-gray-600 transition-colors">
-              Your privacy choices
-            </a>
+
             {onContact && (
               <button onClick={onContact} className="hover:text-gray-600 transition-colors cursor-pointer text-left">
                 Contact sales
