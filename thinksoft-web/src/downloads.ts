@@ -3,14 +3,14 @@
 // The desktop release workflow (packages/desktop/electron-builder.config.ts) builds
 // `thinksoft-desktop-${os}-${arch}.${ext}` and publishes each file under
 // /files/bin/<version>/. Releases published before the rebrand used the
-// `opencode-desktop-` prefix, so the prefix is configurable: keep the default until a
-// Thinksoft-named release exists at the base URL, then set
-// VITE_ARTIFACT_PREFIX=thinksoft-desktop (or nothing, once the default flips).
-export const DESKTOP_VERSION = import.meta.env.VITE_DESKTOP_VERSION || "2.0.16"
+// `opencode-desktop-` prefix, so the prefix stays configurable for older buckets.
+// The default now matches the v2.0.17-thinksoft release, which ships
+// `thinksoft-desktop-` artifacts.
+export const DESKTOP_VERSION = import.meta.env.VITE_DESKTOP_VERSION || "2.0.17-thinksoft"
 
-const ARTIFACT_PREFIX = import.meta.env.VITE_ARTIFACT_PREFIX || "opencode-desktop"
+const ARTIFACT_PREFIX = import.meta.env.VITE_ARTIFACT_PREFIX || "thinksoft-desktop"
 
-const BASE = (import.meta.env.VITE_DOWNLOAD_BASE_URL || `https://opencode.ai/files/bin/${DESKTOP_VERSION}/`).replace(
+const BASE = (import.meta.env.VITE_DOWNLOAD_BASE_URL || `https://github.com/Globalvoix/opencode/releases/download/${DESKTOP_VERSION}/`).replace(
   /\/$/,
   "",
 )
@@ -46,7 +46,7 @@ export const DOWNLOADS: Download[] = [
     hint: "Intel / AMD 64-bit",
     detail: "64-bit (Intel, AMD)",
     artifact: "win-x64.exe",
-    size: 231417943,
+    size: 219833437,
   },
   {
     id: "win-arm64",
@@ -55,7 +55,7 @@ export const DOWNLOADS: Download[] = [
     hint: "Snapdragon / Copilot+",
     detail: "ARM64 (Snapdragon)",
     artifact: "win-arm64.exe",
-    size: 205818160,
+    size: 209426225,
   },
   {
     id: "mac-arm64-dmg",
@@ -64,7 +64,7 @@ export const DOWNLOADS: Download[] = [
     hint: "M1, M2, M3, M4 · .dmg",
     detail: "Apple Silicon",
     artifact: "mac-arm64.dmg",
-    size: 233759656,
+    size: 240817366,
   },
 
   {
@@ -74,7 +74,7 @@ export const DOWNLOADS: Download[] = [
     hint: "x86_64 · .dmg",
     detail: "Intel",
     artifact: "mac-x64.dmg",
-    size: 245709164,
+    size: 248693721,
   },
 
   {
@@ -84,7 +84,7 @@ export const DOWNLOADS: Download[] = [
     hint: "Any distro · .AppImage",
     detail: "x86_64 AppImage",
     artifact: "linux-x86_64.AppImage",
-    size: 244431400,
+    size: 252003391,
   },
   {
     id: "linux-arm64-appimage",
@@ -93,7 +93,7 @@ export const DOWNLOADS: Download[] = [
     hint: "Any distro · .AppImage",
     detail: "ARM64 AppImage",
     artifact: "linux-arm64.AppImage",
-    size: 244398662,
+    size: 251962768,
   },
   {
     id: "linux-x64-deb",
@@ -102,7 +102,7 @@ export const DOWNLOADS: Download[] = [
     hint: "x86_64 · .deb",
     detail: "x86_64 .deb",
     artifact: "linux-amd64.deb",
-    size: 197543616,
+    size: 201818816,
   },
   {
     id: "linux-arm64-deb",
@@ -111,7 +111,7 @@ export const DOWNLOADS: Download[] = [
     hint: "aarch64 · .deb",
     detail: "ARM64 .deb",
     artifact: "linux-arm64.deb",
-    size: 189275464,
+    size: 193599100,
   },
   {
     id: "linux-x64-rpm",
@@ -120,7 +120,7 @@ export const DOWNLOADS: Download[] = [
     hint: "x86_64 · .rpm",
     detail: "x86_64 .rpm",
     artifact: "linux-x86_64.rpm",
-    size: 166507649,
+    size: 179045125,
   },
   {
     id: "linux-arm64-rpm",
@@ -129,7 +129,7 @@ export const DOWNLOADS: Download[] = [
     hint: "aarch64 · .rpm",
     detail: "ARM64 .rpm",
     artifact: "linux-aarch64.rpm",
-    size: 158826949,
+    size: 171246661,
   },
 ]
 
