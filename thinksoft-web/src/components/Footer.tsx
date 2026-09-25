@@ -3,9 +3,10 @@ import React from 'react';
 interface FooterProps {
   onGetStarted?: () => void;
   onContact?: () => void;
+  onPrivacy?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact }) => {
+export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact, onPrivacy }) => {
   return (
     <footer className="w-full bg-white text-[#141414] pt-20 sm:pt-28 pb-12 sm:pb-16 border-t border-gray-200/60">
       <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16">
@@ -32,9 +33,9 @@ export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact }) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-8 text-sm font-medium text-[#141414]">
           {/* Left: Privacy & Terms */}
           <div className="flex flex-wrap items-center gap-6 sm:gap-8">
-            <a href="#privacy" className="hover:text-gray-600 transition-colors">
+            <button onClick={onPrivacy} className="hover:text-gray-600 transition-colors cursor-pointer text-left">
               Privacy policy
-            </a>
+            </button>
             <a href="#terms" className="hover:text-gray-600 transition-colors">
               Terms of service
             </a>

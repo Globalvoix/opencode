@@ -8,14 +8,16 @@ import { LoginModal, DownloadToast } from './components/Modals';
 import { DownloadPage } from './components/DownloadPage';
 import { ContactPage } from './components/ContactPage';
 import { ApplyPage } from './components/ApplyPage';
+import { PrivacyPage } from './components/PrivacyPage';
 import { PLATFORM_LABELS, type Download, startDownload } from './downloads';
 
-type View = 'home' | 'download' | 'contact' | 'apply';
+type View = 'home' | 'download' | 'contact' | 'apply' | 'privacy';
 
 const VIEW_HASHES: Record<Exclude<View, 'home'>, string> = {
   download: 'download',
   contact: 'contact',
   apply: 'apply',
+  privacy: 'privacy',
 }
 
 function viewFromLocation(): View {
@@ -70,6 +72,12 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  const openPrivacyPage = () => {
+    window.location.hash = VIEW_HASHES.privacy;
+    setCurrentView('privacy');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   const closePage = () => {
     if (window.location.hash) window.history.pushState(null, '', window.location.pathname);
     setCurrentView('home');
@@ -95,6 +103,10 @@ export default function App() {
 
   if (currentView === 'apply') {
     return <ApplyPage onBack={closePage} />;
+  }
+
+  if (currentView === 'privacy') {
+    return <PrivacyPage onBack={closePage} />;
   }
 
   return (
@@ -125,7 +137,7 @@ export default function App() {
         <TrustedBrandsSection onLearnMore={openDownloadPage} />
 
         {/* Footer */}
-        <Footer onGetStarted={() => setActiveModal('login')} onContact={openContactPage} />
+        <Footer onGetStarted={() => setActiveModal('login')} onContact={openContactPage} onPrivacy={openPrivacyPage} />
       </div>
 
       {/* Interactive Modals & Toasts */}

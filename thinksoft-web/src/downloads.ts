@@ -47,7 +47,6 @@ export const DOWNLOADS: Download[] = [
     detail: "64-bit (Intel, AMD)",
     artifact: "win-x64.exe",
     size: 231417943,
-    url: "https://oyxvl9jk07gqqyjf.public.blob.vercel-storage.com/Thinksoft-Setup-x64.exe",
   },
   {
     id: "win-arm64",
