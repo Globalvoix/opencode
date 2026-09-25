@@ -4,9 +4,10 @@ interface FooterProps {
   onGetStarted?: () => void;
   onContact?: () => void;
   onPrivacy?: () => void;
+  onTerms?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact, onPrivacy }) => {
+export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact, onPrivacy, onTerms }) => {
   return (
     <footer className="w-full bg-white text-[#141414] pt-20 sm:pt-28 pb-12 sm:pb-16 border-t border-gray-200/60">
       <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16">
@@ -36,9 +37,9 @@ export const Footer: React.FC<FooterProps> = ({ onGetStarted, onContact, onPriva
             <button onClick={onPrivacy} className="hover:text-gray-600 transition-colors cursor-pointer text-left">
               Privacy policy
             </button>
-            <a href="#terms" className="hover:text-gray-600 transition-colors">
+            <button onClick={onTerms} className="hover:text-gray-600 transition-colors cursor-pointer text-left">
               Terms of service
-            </a>
+            </button>
             <a href="#privacy-choices" className="hover:text-gray-600 transition-colors">
               Your privacy choices
             </a>

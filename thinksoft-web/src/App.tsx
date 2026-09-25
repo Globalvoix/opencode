@@ -9,15 +9,17 @@ import { DownloadPage } from './components/DownloadPage';
 import { ContactPage } from './components/ContactPage';
 import { ApplyPage } from './components/ApplyPage';
 import { PrivacyPage } from './components/PrivacyPage';
+import { TermsPage } from './components/TermsPage';
 import { PLATFORM_LABELS, type Download, startDownload } from './downloads';
 
-type View = 'home' | 'download' | 'contact' | 'apply' | 'privacy';
+type View = 'home' | 'download' | 'contact' | 'apply' | 'privacy' | 'terms';
 
 const VIEW_HASHES: Record<Exclude<View, 'home'>, string> = {
   download: 'download',
   contact: 'contact',
   apply: 'apply',
   privacy: 'privacy',
+  terms: 'terms',
 }
 
 function viewFromLocation(): View {
@@ -78,6 +80,12 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  const openTermsPage = () => {
+    window.location.hash = VIEW_HASHES.terms;
+    setCurrentView('terms');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   const closePage = () => {
     if (window.location.hash) window.history.pushState(null, '', window.location.pathname);
     setCurrentView('home');
@@ -109,6 +117,10 @@ export default function App() {
     return <PrivacyPage onBack={closePage} />;
   }
 
+  if (currentView === 'terms') {
+    return <TermsPage onBack={closePage} />;
+  }
+
   return (
     <div className="min-h-screen bg-white text-[#141414] flex flex-col selection:bg-[#D96B27]/20 selection:text-[#141414] antialiased">
       {/* Main Top Navigation */}
@@ -137,7 +149,7 @@ export default function App() {
         <TrustedBrandsSection onLearnMore={openDownloadPage} />
 
         {/* Footer */}
-        <Footer onGetStarted={() => setActiveModal('login')} onContact={openContactPage} onPrivacy={openPrivacyPage} />
+        <Footer onGetStarted={() => setActiveModal('login')} onContact={openContactPage} onPrivacy={openPrivacyPage} onTerms={openTermsPage} />
       </div>
 
       {/* Interactive Modals & Toasts */}
