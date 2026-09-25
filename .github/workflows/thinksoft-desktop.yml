@@ -137,3 +137,42 @@ jobs:
           name: thinksoft-desktop-${{ matrix.name }}
           path: packages/desktop/dist/*
           if-no-files-found: error
+
+  publish-release:
+    needs: build-desktop
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: thinksoft-desktop-*
+          merge-multiple: true
+
+      - name: Collect installers
+        run: |
+          mkdir -p release
+          mv dist/thinksoft-desktop-win-x64.exe release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-win-arm64.exe release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-mac-arm64.dmg release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-mac-x64.dmg release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-linux-x86_64.AppImage release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-linux-arm64.AppImage release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-linux-amd64.deb release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-linux-arm64.deb release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-linux-x86_64.rpm release/ 2>/dev/null || true
+          mv dist/thinksoft-desktop-linux-aarch64.rpm release/ 2>/dev/null || true
+          ls -la release
+          test "$(ls release | wc -l)" = "10"
+
+      - name: Publish release
+        run: |
+          gh release delete "$TAG" -y || true
+          git push origin ":refs/tags/$TAG" || true
+          gh release create "$TAG" release/* --target "$REF" --title "Thinksoft $TAG" --notes "Thinksoft desktop builds."
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.version || '2.0.17-thinksoft' }}
+          REF: ${{ github.ref_name }}
