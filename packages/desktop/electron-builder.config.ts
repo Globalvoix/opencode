@@ -120,7 +120,9 @@ const getBase = (appId: string): Configuration => ({
       const { sign } = await import("app-builder-lib/out/codeSign/macCodeSign")
       await sign(macSignOptions(options))
     },
-    notarize: true,
+    // Unsigned CI builds (e.g. the thinksoft-desktop workflow on forks without Apple
+    // credentials) set OPENCODE_SKIP_NOTARIZE=1; release builds notarize as before.
+    notarize: process.env.OPENCODE_SKIP_NOTARIZE !== "1",
     target: ["dmg", "zip"],
   },
   protocols: {

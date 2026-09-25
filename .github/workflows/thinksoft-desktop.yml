@@ -1,0 +1,133 @@
+# Unsigned Thinksoft desktop builds for every platform.
+#
+# The release pipeline (publish.yml) only runs on anomalyco/opencode with signing
+# secrets. This workflow builds the same rebranded source on stock GitHub runners
+# without Apple, Azure or Sentry credentials: macOS skips signing/notarization,
+# Windows skips Trusted Signing (script/sign-windows.ps1 already no-ops without
+# Azure vars), Linux needs no signing at all.
+#
+# Run from the Actions tab (workflow_dispatch). Each platform uploads its
+# installers as an artifact; nothing is published.
+
+name: thinksoft-desktop
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version stamped into the build"
+        required: false
+        default: "2.0.17-thinksoft"
+        type: string
+
+env:
+  OPENCODE_VERSION: ${{ inputs.version || '2.0.17-thinksoft' }}
+  OPENCODE_CHANNEL: prod
+  BUN_COMPILE_RELEASE: bun-v1.4.2
+
+jobs:
+  build-cli:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Build CLI for all targets
+        working-directory: packages/cli
+        run: bun script/build.ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-dist
+          path: packages/cli/dist
+          if-no-files-found: error
+
+  build-desktop:
+    needs: build-cli
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: mac-arm64
+            os: macos-15
+            flags: --mac --arm64
+            cli_target: aarch64-apple-darwin
+          - name: mac-x64
+            os: macos-15
+            flags: --mac --x64
+            cli_target: x86_64-apple-darwin
+          - name: win-x64
+            os: windows-2025
+            flags: --win
+            cli_target: x86_64-pc-windows-msvc
+          - name: win-arm64
+            os: windows-2025
+            flags: --win --arm64
+            cli_target: aarch64-pc-windows-msvc
+          - name: linux-x64
+            os: ubuntu-24.04
+            flags: --linux
+            cli_target: x86_64-unknown-linux-gnu
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            flags: --linux --arm64
+            cli_target: aarch64-unknown-linux-gnu
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cli-dist
+          path: packages/cli/dist
+
+      - name: Install rpm tooling (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends rpm
+
+      - name: Prepare
+        working-directory: packages/desktop
+        run: bun ./scripts/prepare.ts
+        env:
+          OPENCODE_CLI_TARGET: ${{ matrix.cli_target }}
+          OPENCODE_CLI_DIST: ${{ github.workspace }}/packages/cli/dist
+
+      - name: Build
+        working-directory: packages/desktop
+        run: bun run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          OPENCODE_CLI_TARGET: ${{ matrix.cli_target }}
+          OPENCODE_CLI_DIST: ${{ github.workspace }}/packages/cli/dist
+
+      - name: Package
+        working-directory: packages/desktop
+        run: npx electron-builder ${{ matrix.flags }} --publish never --config electron-builder.config.ts
+        timeout-minutes: 60
+        env:
+          OPENCODE_SKIP_NOTARIZE: "1"
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thinksoft-desktop-${{ matrix.name }}
+          path: packages/desktop/dist/*
+          if-no-files-found: error
