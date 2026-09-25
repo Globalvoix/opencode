@@ -149,7 +149,7 @@ export default function App() {
         <TrustedBrandsSection onLearnMore={openDownloadPage} />
 
         {/* Footer */}
-        <Footer onGetStarted={() => setActiveModal('login')} onContact={openContactPage} onPrivacy={openPrivacyPage} onTerms={openTermsPage} />
+        <Footer onGetStarted={openDownloadPage} onContact={openContactPage} onPrivacy={openPrivacyPage} onTerms={openTermsPage} />
       </div>
 
       {/* Interactive Modals & Toasts */}
