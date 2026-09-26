@@ -7,19 +7,12 @@ import createPresence from "solid-presence"
 import { Composer } from "@/composer/composer"
 import { ComposerDropzone } from "@/composer/dropzone"
 import type { ComposerModel } from "@/composer/model"
-import { PromptGitStatus, PromptWorkspaceSelector } from "@/new-session/workspace/selector"
-import {
-  PromptProjectAddButton,
-  PromptProjectSelector,
-  type PromptProjectController,
-} from "@/new-session/project/selector"
 import { useLanguage } from "@/runtime/i18n/language"
 import { useWorkspaceLocation } from "@/workspaces/location"
 import { useProviders } from "@/providers/catalog/providers"
 import { NEW_SESSION_CONTENT_WIDTH } from "@/new-session/layout"
 import { Persist, persisted } from "@/runtime/persistence/storage"
 import { Persistence } from "@/runtime/persistence/schema"
-import type { NewSessionWorkspaceController } from "./workspace/controller"
 import { NewSessionWordmark } from "./wordmark"
 
 const providerTipDismissalDuration = 30 * 24 * 60 * 60 * 1000
@@ -34,21 +27,7 @@ export const ProviderTipSchema = Persistence.struct({
 
 export const WorkspaceTipSchema = ProviderTipSchema
 
-export function NewSessionView(props: {
-  composer: ComposerModel
-  project: PromptProjectController
-  workspace: NewSessionWorkspaceController
-}) {
-  const [onboarding, setOnboarding, , onboardingReady] = persisted(
-    Persist.global("workspace-onboarding"),
-    WorkspaceOnboardingSchema,
-    { used: false },
-  )
-  const select = (value: string) => {
-    props.workspace.selection.set(value)
-    if (value !== "main") setOnboarding("used", true)
-  }
-
+export function NewSessionView(props: { composer: ComposerModel }) {
   return (
     <div class="@container relative flex flex-col min-h-0 h-full flex-1">
       <div
@@ -64,52 +43,10 @@ export function NewSessionView(props: {
             <NewSessionWordmark />
             <div class="mt-8 flex flex-col gap-8">
               <Composer model={props.composer} />
-              <Show when={props.project.empty()}>
-                <PromptProjectAddButton controller={props.project} />
-              </Show>
-              <Show when={props.project.selected()}>
-                <div class="flex min-h-7 min-w-0 flex-col items-center justify-center gap-0 text-v2-text-text-faint sm:flex-row">
-                  <PromptProjectSelector controller={props.project} placement="bottom" />
-                  <Show
-                    when={props.workspace.bar.visible()}
-                    fallback={
-                      <PromptGitStatus
-                        branch={props.workspace.bar.branch()}
-                        noGit={!props.workspace.project.git()}
-                        class="ms-1"
-                      />
-                    }
-                  >
-                    <PromptWorkspaceSelector
-                      value={props.workspace.selection.value()}
-                      projectRoot={props.workspace.project.root()}
-                      workspaces={props.workspace.project.workspaces()}
-                      branches={props.workspace.project.branches()}
-                      branch={props.workspace.bar.branch()}
-                      onboarding={onboardingReady() && !onboarding.used}
-                      onChange={select}
-                      onCreate={props.workspace.selection.create}
-                      onSearch={props.workspace.project.searchBranches}
-                      onDone={props.composer.restoreFocus}
-                      onViewAll={props.workspace.project.openAll}
-                    />
-                  </Show>
-                </div>
-              </Show>
             </div>
           </div>
         </div>
-        <NewSessionTips
-          selection={props.composer.model.selection}
-          onDone={props.composer.restoreFocus}
-          workspaceEligible={
-            !!props.project.selected() &&
-            props.workspace.bar.visible() &&
-            props.workspace.selection.value() !== "create" &&
-            props.workspace.project.managed() === 0
-          }
-          onWorkspace={() => select("create")}
-        />
+        <NewSessionTips selection={props.composer.model.selection} onDone={props.composer.restoreFocus} />
       </div>
     </div>
   )
@@ -118,8 +55,6 @@ export function NewSessionView(props: {
 function NewSessionTips(props: {
   selection: ComposerModel["model"]["selection"]
   onDone: () => void
-  workspaceEligible: boolean
-  onWorkspace: () => void
 }) {
   const language = useLanguage()
   const dialog = useDialog()
@@ -130,41 +65,23 @@ function NewSessionTips(props: {
     ProviderTipSchema,
     { dismissedAt: 0 },
   )
-  const [workspaceState, setWorkspaceState, , workspaceReady] = persisted(
-    Persist.global("new-session.workspace-tip"),
-    WorkspaceTipSchema,
-    { dismissedAt: 0 },
-  )
-  const workspaceVisible = createMemo(
-    () =>
-      props.workspaceEligible &&
-      workspaceReady() &&
-      Date.now() - workspaceState.dismissedAt >= providerTipDismissalDuration,
-  )
   const providerVisible = createMemo(
     () =>
       providerReady() &&
       providers.anyConnection() === false &&
       Date.now() - providerState.dismissedAt >= providerTipDismissalDuration,
   )
-  const tip = createMemo<"workspace" | "provider" | undefined>(() => {
+  const tip = createMemo<"provider" | undefined>(() => {
     if (providerVisible()) return "provider"
-    if (workspaceVisible()) return "workspace"
+    return undefined
   })
-  const displayed = createMemo<"workspace" | "provider" | undefined>((previous) => tip() ?? previous)
   const [ref, setRef] = createSignal<HTMLDivElement>()
   const presence = createPresence({
     show: () => tip() !== undefined,
     element: () => ref() ?? null,
   })
   const open = () => {
-    const current = tip()
-    if (!current) return
-    if (current === "workspace") {
-      setWorkspaceState("dismissedAt", Date.now())
-      props.onWorkspace()
-      return
-    }
+    if (!tip()) return
     void import("@/providers/connect/dialog").then(({ DialogConnectProvider }) => {
       void dialog.show(() => (
         <DialogConnectProvider directory={sdk().directory} selection={props.selection} onDone={props.onDone} />
@@ -172,12 +89,7 @@ function NewSessionTips(props: {
     })
   }
   const dismiss = () => {
-    const current = tip()
-    if (!current) return
-    if (current === "workspace") {
-      setWorkspaceState("dismissedAt", Date.now())
-      return
-    }
+    if (!tip()) return
     setProviderState("dismissedAt", Date.now())
   }
 
@@ -197,7 +109,7 @@ function NewSessionTips(props: {
             onClick={open}
           >
             <span class="truncate">
-              {language.t(displayed() === "workspace" ? "home.workspaceTip" : "home.providerTip")}
+              {language.t("home.providerTip")}
             </span>
             <span class="flex size-6 shrink-0 items-center justify-center" aria-hidden="true">
               <Icon name="chevron-down" size="small" class="-rotate-90" />

@@ -1451,6 +1451,7 @@ export function createData(config: CreateDataInput) {
         model?: ModelRef
         location?: LocationRef
         projectID?: string
+        sandbox?: boolean
       }) {
         const { projectID, ...payload } = input
         const id = payload.id ?? SessionID.create()

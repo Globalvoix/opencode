@@ -5,27 +5,22 @@ import { startTransition } from "solid-js"
 import type { NewSessionComposerAdapter } from "@/composer/adapter"
 import { useComposerState } from "@/composer/persistence"
 import { createComposerControls, createComposerModelSelection } from "@/composer/selection"
-import { createComposerProjectControls } from "./project/controller"
 import { useLanguage } from "@/runtime/i18n/language"
 import { useLocal } from "@/providers/models/selection"
 import { useData, useServer } from "@/runtime/server/current"
 import { type ServerSDK, useServerSDK } from "@/runtime/server/client"
 import { useTabs } from "@/shell/tabs/tabs"
-import { useWorkspaceLocation } from "@/workspaces/location"
-import { createWorktree } from "@/workspaces/create"
 import { useSessionKey } from "@/session/session-layout"
 import { showToast } from "@/shell/notifications/toast"
 import { SessionRouteKey, SessionStateKey } from "@/runtime/server/scope"
 import { clearSessionMessageHandoff, setSessionMessageHandoff } from "@/session/handoff"
-import type { DraftMcpControls } from "./mcp"
 
-export function createNewSessionComposerAdapter(props: {
-  draftID: string
-  worktree: () => string
-  branch: () => string | undefined
-  submitted: () => void
-  mcp: DraftMcpControls
-}) {
+/**
+ * New sessions always run in a fresh E2B sandbox: submit provisions one
+ * server-side and the composer retargets onto the created session. There is
+ * no project, worktree or branch selection; every session starts identical.
+ */
+export function createNewSessionComposerAdapter(props: { draftID: string }) {
   const route = useSessionKey()
   const prompt = useComposerState()
   const state = prompt.capture()
@@ -34,7 +29,6 @@ export function createNewSessionComposerAdapter(props: {
   const server = useServer()
   const serverSDK = useServerSDK()
   const tabs = useTabs()
-  const location = useWorkspaceLocation()
   const language = useLanguage()
   const model = createComposerModelSelection({ agent: () => local.agent.current() })
   const controls = createComposerControls({ sessionKey: route.sessionKey, model })
@@ -45,45 +39,10 @@ export function createNewSessionComposerAdapter(props: {
     ready: prompt.ready,
     controls,
     working: () => false,
-    submitted: props.submitted,
+    submitted: () => {},
     async start(selection, submission, message) {
       const draftID = props.draftID
-      const currentDirectory = location().directory
-      const projectDirectory = data.location.info({ directory: currentDirectory })?.project.canonical ?? currentDirectory
-      const worktree = props.worktree()
-      const branch = props.branch()
-      const mcp = props.mcp.capture()
       const id = Session.ID.create()
-      const pending =
-        worktree === "create"
-          ? tabs.prepareSession(draftID, { server: server.key, sessionId: id }, { message, selection })
-          : undefined
-      await pending?.ready
-      const sessionDirectory = await resolveSessionDirectory({
-        projectDirectory,
-        worktree,
-        branch,
-        data,
-        serverSDK,
-        language,
-      })
-      if (!sessionDirectory) {
-        await pending?.rollback()
-        return
-      }
-
-      const rollback = async () => {
-        if (!pending) return
-        data.project.invalidate()
-        await data.project.sync().catch(() => undefined)
-        await pending.rollback(sessionDirectory)
-      }
-      if (!(await props.mcp.prepare(sessionDirectory, mcp))) {
-        await rollback()
-        if (pending) props.mcp.remember(sessionDirectory, mcp)
-        return
-      }
-
       const created = data.session.create({
         id,
         agent: selection.agent,
@@ -92,52 +51,44 @@ export function createNewSessionComposerAdapter(props: {
           providerID: selection.model.providerID,
           variant: selection.variant,
         },
-        location: { directory: sessionDirectory },
+        sandbox: true,
       })
-      const creation = created.request.then(
-        () => ({ ok: true as const }),
-        (error) => {
-          showToast({
-            title: language.t("prompt.toast.sessionCreateFailed.title"),
-            description: errorMessage(language, error),
-          })
-          return { ok: false as const, error }
-        },
-      )
-      if (pending && !(await creation).ok) {
-        await rollback()
+      let info
+      try {
+        info = await created.request
+      } catch (error) {
+        showToast({
+          title: language.t("prompt.toast.sessionCreateFailed.title"),
+          description: errorMessage(language, error),
+        })
         return
       }
-      const afterCreation = async <T>(run: () => Promise<T>) => {
-        const result = await creation
-        if (!result.ok) throw result.error
-        return run()
-      }
+      const sessionDirectory = info.location.directory
+      const afterCreation = async <T>(run: () => Promise<T>) => run()
       const sessionKey = SessionStateKey.from(
         serverSDK.scope,
         SessionRouteKey.fromRoute(base64Encode(sessionDirectory), created.id),
       )
       const cleanupReady = startTransition(() => {
-        if (!pending) tabs.updateDraft(draftID, { worktree: undefined, branch: undefined })
         local.session.promote(sessionDirectory, created.id, {
           agent: selection.agent,
           model: selection.model,
           variant: selection.variant ?? null,
           choices: model.remembered(),
         })
-        if (!pending) tabs.promoteDraft(draftID, { server: server.key, sessionId: created.id })
+        tabs.promoteDraft(draftID, { server: server.key, sessionId: created.id })
         submission.retarget(
           prompt.capture(
             { dir: base64Encode(sessionDirectory), id: created.id },
             { server: server.key, scope: serverSDK.scope },
           ),
-          { preserveDraft: !!pending },
+          { preserveDraft: false },
         )
       })
 
       return {
         cleanupReady,
-        complete: pending ? () => pending.complete(submission.target()) : undefined,
+        complete: undefined,
         session: {
           id: created.id,
           directory: sessionDirectory,
@@ -169,7 +120,6 @@ export function createNewSessionComposerAdapter(props: {
 
   return {
     adapter,
-    project: createComposerProjectControls({ draftId: props.draftID, worktree: props.worktree }),
     model,
     ready: prompt.ready,
   }
@@ -194,31 +144,6 @@ function createMessageHandoff(key: string, sessionID: string, event: ServerSDK["
       clearSessionMessageHandoff(key, messageID)
     },
   }
-}
-
-async function resolveSessionDirectory(input: {
-  projectDirectory: string
-  worktree: string
-  branch?: string
-  data: ReturnType<typeof useData>
-  serverSDK: ReturnType<typeof useServerSDK>
-  language: ReturnType<typeof useLanguage>
-}) {
-  if (input.worktree === "main") return input.projectDirectory
-  if (input.worktree !== "create") return input.worktree
-
-  return createWorktree({
-    api: input.serverSDK.api,
-    data: input.data,
-    directory: input.projectDirectory,
-    project: input.data.location.info({ directory: input.projectDirectory })?.project,
-    branch: input.branch,
-  }).catch((error) => {
-    showToast({
-      title: input.language.t("prompt.toast.worktreeCreateFailed.title"),
-      description: errorMessage(input.language, error),
-    })
-  })
 }
 
 function errorMessage(language: ReturnType<typeof useLanguage>, error: unknown) {
