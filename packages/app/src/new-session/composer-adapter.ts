@@ -16,9 +16,9 @@ import { SessionRouteKey, SessionStateKey } from "@/runtime/server/scope"
 import { clearSessionMessageHandoff, setSessionMessageHandoff } from "@/session/handoff"
 
 /**
- * New sessions always run in a fresh E2B sandbox: submit provisions one
- * server-side and the composer retargets onto the created session. There is
- * no project, worktree or branch selection; every session starts identical.
+ * New sessions start without project, worktree or branch selection; every
+ * session starts identical. The E2B plugin provisions a sandbox per session
+ * and steers the agent into it.
  */
 export function createNewSessionComposerAdapter(props: { draftID: string }) {
   const route = useSessionKey()
@@ -43,6 +43,8 @@ export function createNewSessionComposerAdapter(props: { draftID: string }) {
     async start(selection, submission, message) {
       const draftID = props.draftID
       const id = Session.ID.create()
+      // Sessions are created with the default location; the E2B plugin
+      // provisions a sandbox per session and steers the agent into it.
       const created = data.session.create({
         id,
         agent: selection.agent,
@@ -51,7 +53,6 @@ export function createNewSessionComposerAdapter(props: { draftID: string }) {
           providerID: selection.model.providerID,
           variant: selection.variant,
         },
-        sandbox: true,
       })
       let info
       try {

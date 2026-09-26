@@ -5,7 +5,7 @@ import { useComposerCommands } from "@/composer/commands"
 import { createNewSessionComposerAdapter } from "./composer-adapter"
 import { NewSessionView } from "./view"
 
-/** The draft-only Session page. Submitting provisions a sandbox session. */
+/** The draft-only Session page. Submitting creates a session without project selection. */
 export default function NewSessionPage(props: { draftId: string }) {
   const [search, setSearch] = useSearchParams<{ draftId?: string; prompt?: string }>()
   const composer = createNewSessionComposerAdapter({ draftID: props.draftId })
