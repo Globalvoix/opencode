@@ -5,8 +5,7 @@ import { makeGlobalNode } from "@opencode/util/effect/app-node"
 import { Context, Effect, Layer, Schema } from "effect"
 import type { Scope } from "effect"
 import type { EnvironmentDriver } from "../environment/driver.js"
-import { driver } from "./e2b.js"
-import { Error, ProviderNotFound } from "./error.js"
+
 /**
  * Smallest provider-owned JSON value required to reconnect to the same
  * provider resource. Core stores it opaquely and hands it back; only the
@@ -15,7 +14,14 @@ import { Error, ProviderNotFound } from "./error.js"
 export const Binding = Schema.Record(Schema.String, Schema.Json)
 export type Binding = typeof Binding.Type
 
-export { Error, ProviderNotFound } from "./error.js"
+export class Error extends Schema.TaggedError<Error>()("WorkspaceDriver.Error", {
+  message: Schema.optional(Schema.String),
+  cause: Schema.optional(Schema.Defect()),
+}) {}
+
+export class ProviderNotFound extends Schema.TaggedError<ProviderNotFound>()("WorkspaceDriver.ProviderNotFound", {
+  provider: Schema.String,
+}) {}
 
 export interface Interface {
   /**
@@ -79,4 +85,4 @@ export const registryNode = (drivers: Readonly<Record<string, Interface>>) =>
     deps: [],
   })
 
-export const node = registryNode({ e2b: driver })
+export const node = registryNode({})

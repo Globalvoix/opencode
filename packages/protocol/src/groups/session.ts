@@ -224,7 +224,6 @@ export const makeSessionGroup = <
           agent: Agent.ID.pipe(Schema.optional),
           model: Model.Ref.pipe(Schema.optional),
           location: Location.PublicRef.pipe(Schema.optional),
-          sandbox: Schema.Boolean.pipe(Schema.optional),
           metadata: Session.Metadata.pipe(Schema.optional),
           permissions: Permission.Ruleset.pipe(Schema.optional),
         }),
@@ -233,8 +232,7 @@ export const makeSessionGroup = <
         OpenApi.annotations({
           identifier: "session.create",
           summary: "Create session",
-          description:
-            "Create a session at the requested location, or in a fresh E2B sandbox when sandbox is true.",
+          description: "Create a session at the requested location.",
         }),
       ),
     )
@@ -298,7 +296,7 @@ export const makeSessionGroup = <
       HttpApiEndpoint.delete("session.remove", "/api/session/:sessionID", {
         params: { sessionID: Session.ID },
         success: HttpApiSchema.NoContent,
-        error: [SessionNotFoundError, ServiceUnavailableError],
+        error: SessionNotFoundError,
       }).annotateMerge(
         OpenApi.annotations({
           identifier: "session.remove",

@@ -8,7 +8,6 @@ import { AbsolutePath } from "./schema.js"
 import { Bus } from "./bus.js"
 import { Database } from "./database/database.js"
 import { Worktree } from "@opencode/schema/worktree"
-import type { Workspace } from "@opencode/schema/workspace"
 import { FSUtil } from "@opencode/util/fs-util"
 import { Git } from "./git.js"
 import { AppProcess } from "@opencode/util/process"
@@ -67,15 +66,6 @@ export interface Interface {
   readonly activate: (projectID: ID) => Effect.Effect<void>
   /** Resolves and persists the owning Project. */
   readonly resolve: (input: AbsolutePath, options?: { readonly discovery?: boolean }) => Effect.Effect<Resolved>
-  /**
-   * Records the synthetic owning Project for a remote workspace session.
-   * Unlike resolve it never touches the host disk: the directory lives in the
-   * workspace, so there is nothing local to discover or verify.
-   */
-  readonly resolveWorkspace: (
-    workspaceID: Workspace.ID,
-    directory: AbsolutePath,
-  ) => Effect.Effect<Resolved>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/Project") {}
@@ -392,21 +382,7 @@ const layer = Layer.effect(
       })
     })
 
-    const resolveWorkspace = Effect.fn("Project.resolveWorkspace")(function* (
-      workspaceID: Workspace.ID,
-      directory: AbsolutePath,
-    ) {
-      const project: Resolved = {
-        id: ID.make(Hash.fast(`workspace:${workspaceID}`)),
-        directory,
-        canonical: directory,
-        vcs: undefined,
-      }
-      yield* upsertProject(db, project).pipe(Effect.orDie)
-      return project
-    })
-
-    return Service.of({ list, update, activate, resolve, resolveWorkspace })
+    return Service.of({ list, update, activate, resolve })
   }),
 )
 

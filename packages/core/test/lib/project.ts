@@ -18,10 +18,6 @@ export const globalProjectNode = makeGlobalNode({
           const project = { id: Project.ID.global, directory, canonical: directory }
           return upsertProject(database.db, project).pipe(Effect.orDie, Effect.as(project))
         },
-        resolveWorkspace: (_workspaceID, directory) => {
-          const project = { id: Project.ID.global, directory, canonical: directory }
-          return upsertProject(database.db, project).pipe(Effect.orDie, Effect.as(project))
-        },
       })
     }),
   ),

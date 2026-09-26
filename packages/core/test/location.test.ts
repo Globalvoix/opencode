@@ -22,13 +22,6 @@ const projectLayer = Layer.succeed(
         canonical: AbsolutePath.make("/main/repo"),
         vcs: { type: "git", store: AbsolutePath.make("/repo/.git") },
       }),
-    resolveWorkspace: (_workspaceID, directory) =>
-      Effect.succeed({
-        id: Project.ID.make("project"),
-        directory,
-        canonical: directory,
-        vcs: undefined,
-      }),
   }),
 )
 const it = testEffect(AppNodeBuilder.build(Location.boundNode(ref), [Project.node.replace(projectLayer)]))

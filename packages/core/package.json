@@ -125,7 +125,6 @@
     "bun-pty": "0.4.8",
     "diff": "catalog:",
     "drizzle-orm": "catalog:",
-    "e2b": "2.51.0",
     "effect": "catalog:",
     "fuzzysort": "3.1.0",
     "gitlab-ai-provider": "6.18.0",
