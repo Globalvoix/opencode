@@ -16,7 +16,10 @@ import { Database } from "./database/database.js"
 import { SessionProjector } from "./session/projector.js"
 import { SessionMessageTable } from "./session/sql.js"
 import { SessionSchema } from "./session/schema.js"
-import { RelativePath } from "./schema.js"
+import { AbsolutePath, RelativePath } from "./schema.js"
+import { Workspace } from "./workspace.js"
+import { E2BWorkspace } from "./workspace/e2b.js"
+import type { WorkspaceDriver } from "./workspace/driver.js"
 import { Agent } from "@opencode/schema/agent"
 import type { Permission } from "@opencode/schema/permission"
 import { App } from "./app.js"
@@ -88,7 +91,11 @@ type CreateBaseInput = {
   permissions?: Permission.Ruleset
 }
 type CreateInput = CreateBaseInput &
-  ({ location: Location.Ref; parentID?: never } | { parentID: SessionSchema.ID; location?: never })
+  (
+    | { location: Location.Ref; parentID?: never; sandbox?: never }
+    | { parentID: SessionSchema.ID; location?: never; sandbox?: never }
+    | { sandbox: true; location?: never; parentID?: never }
+  )
 
 type CompactInput = Parameters<Session.Handle["compact"]>[0] & { sessionID: SessionSchema.ID }
 
@@ -118,7 +125,12 @@ export interface Interface {
   readonly list: (input?: ListInput) => Effect.Effect<{
     readonly data: SessionSchema.Info[]
   }>
-  readonly create: (input: CreateInput) => Effect.Effect<SessionSchema.Info, NotFoundError>
+  readonly create: (
+    input: CreateInput,
+  ) => Effect.Effect<
+    SessionSchema.Info,
+    NotFoundError | Workspace.NotFound | Workspace.CreateConflict | WorkspaceDriver.Error | WorkspaceDriver.ProviderNotFound
+  >
   readonly fork: (
     input: ForkInput,
   ) => Effect.Effect<SessionSchema.Info, NotFoundError | MessageNotFoundError | ForkEmptyError>
@@ -128,7 +140,9 @@ export interface Interface {
     readonly variables?: SessionEnvironment.Variables
   }) => Effect.Effect<SessionEnvironment.Variables | undefined, NotFoundError>
   readonly view: (input: { sessionID: SessionSchema.ID; idle: number }) => Effect.Effect<void, NotFoundError>
-  readonly remove: (sessionID: SessionSchema.ID) => Effect.Effect<void, NotFoundError>
+  readonly remove: (
+    sessionID: SessionSchema.ID,
+  ) => Effect.Effect<void, NotFoundError | WorkspaceDriver.Error | WorkspaceDriver.ProviderNotFound>
   readonly messages: (
     input: SessionStore.MessagesInput,
   ) => Effect.Effect<SessionMessage.Info[], NotFoundError | MessageDecodeError>
@@ -240,6 +254,7 @@ const layer = Layer.effect(
     const store = yield* SessionStore.Service
     const instances = yield* Instance.Service
     const moves = yield* SessionMove.Service
+    const workspaces = yield* Workspace.Service
     const jobs = yield* Job.Service
     const environments = yield* SessionEnvironment.Service
     const locations = yield* LocationServiceMap.Service
@@ -253,10 +268,23 @@ const layer = Layer.effect(
         if (recorded) return recorded
         const parent = input.parentID ? yield* store.get(input.parentID) : undefined
         if (input.parentID && parent === undefined) return yield* new NotFoundError({ sessionID: input.parentID })
-        const location = parent?.location ?? input.location
+        const location = yield* (parent?.location
+          ? Effect.succeed(parent.location)
+          : input.sandbox
+            ? Effect.gen(function* () {
+                const workspaceID = yield* workspaces.create({ provider: E2BWorkspace.provider })
+                yield* workspaces.provision(workspaceID)
+                return {
+                  directory: AbsolutePath.make(E2BWorkspace.SANDBOX_DIRECTORY),
+                  workspaceID,
+                }
+              })
+            : Effect.succeed(input.location))
         if (location === undefined)
           return yield* Effect.die(new Error("Session.create requires either location or an existing parentID"))
-        const project = yield* projects.resolve(location.directory)
+        const project = location.workspaceID
+          ? yield* projects.resolveWorkspace(location.workspaceID, location.directory)
+          : yield* projects.resolve(location.directory)
         const projected = yield* bus
           .publish(
             SessionEvent.Created,
@@ -353,13 +381,16 @@ const layer = Layer.effect(
       }),
       view: (input) => sessions.forSession(input.sessionID).view(input),
       remove: Effect.fn("Session.remove")(function* (sessionID) {
-        yield* result.get(sessionID)
+        const session = yield* result.get(sessionID)
         yield* execution.interrupt(sessionID)
         yield* execution.awaitIdle(sessionID)
         yield* transport.close(sessionID)
         const children = yield* result.list({ parentID: sessionID })
         yield* Effect.forEach(children.data, (child) => result.remove(child.id), { concurrency: 1, discard: true })
         yield* environments.clear(sessionID)
+        // Destroy before publishing Deleted so a failed destroy keeps the
+        // session (and a retry path) instead of stranding a billable sandbox.
+        if (session.location.workspaceID) yield* workspaces.destroy(session.location.workspaceID)
         yield* bus.publish(SessionEvent.Deleted, { sessionID })
         yield* bus.remove(sessionID)
       }),
@@ -475,6 +506,7 @@ export const node: LayerNode.Provider<Service, never, typeof Node.tags.values.gl
     Instance.node,
     SessionInbox.node,
     SessionMove.node,
+    Workspace.node,
     SessionProjector.node,
     LocationServiceMap.node,
     FSUtil.node,

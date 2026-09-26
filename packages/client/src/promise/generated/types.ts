@@ -2869,6 +2869,7 @@ export type SessionCreateInput = {
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string
@@ -2882,6 +2883,7 @@ export type SessionCreateInput = {
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string
@@ -2895,6 +2897,7 @@ export type SessionCreateInput = {
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string
@@ -2908,6 +2911,7 @@ export type SessionCreateInput = {
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string
@@ -2921,6 +2925,7 @@ export type SessionCreateInput = {
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string
@@ -2928,12 +2933,27 @@ export type SessionCreateInput = {
       readonly effect: "allow" | "deny" | "ask"
     }> | null
   }["location"]
+  readonly sandbox?: {
+    readonly id?: string | null
+    readonly title?: string | null
+    readonly agent?: string | null
+    readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
+    readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
+    readonly metadata?: { readonly [x: string]: JsonValue } | null
+    readonly permissions?: ReadonlyArray<{
+      readonly action: string
+      readonly resource: string
+      readonly effect: "allow" | "deny" | "ask"
+    }> | null
+  }["sandbox"]
   readonly metadata?: {
     readonly id?: string | null
     readonly title?: string | null
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string
@@ -2947,6 +2967,7 @@ export type SessionCreateInput = {
     readonly agent?: string | null
     readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string } | null
     readonly location?: { readonly directory: string } | null
+    readonly sandbox?: boolean | null
     readonly metadata?: { readonly [x: string]: JsonValue } | null
     readonly permissions?: ReadonlyArray<{
       readonly action: string

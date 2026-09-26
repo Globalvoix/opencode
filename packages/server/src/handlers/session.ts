@@ -133,7 +133,9 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
                 model: ctx.payload.model,
                 metadata: ctx.payload.metadata,
                 permissions: ctx.payload.permissions,
-                location: ctx.payload.location ?? { directory: AbsolutePath.make(process.cwd()) },
+                ...(ctx.payload.sandbox
+                  ? { sandbox: true as const }
+                  : { location: ctx.payload.location ?? { directory: AbsolutePath.make(process.cwd()) } }),
               })
               .pipe(Effect.orDie),
           }
@@ -206,7 +208,17 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
       .handle(
         "session.remove",
         Effect.fn(function* (ctx) {
-          yield* session.remove(ctx.params.sessionID).pipe(Effect.catchTag("Session.NotFoundError", missingSession))
+          yield* session.remove(ctx.params.sessionID).pipe(
+            Effect.catchTag("Session.NotFoundError", missingSession),
+            // A failed sandbox destroy keeps the session so removal can be
+            // retried instead of stranding a billable sandbox.
+            Effect.catchTags({
+              "WorkspaceDriver.Error": (error) =>
+                new ServiceUnavailableError({ message: error.message ?? "Failed to destroy workspace" }),
+              "WorkspaceDriver.ProviderNotFound": (error) =>
+                new ServiceUnavailableError({ message: `Workspace provider not available: ${error.provider}` }),
+            }),
+          )
           return HttpApiSchema.NoContent.make()
         }),
       )

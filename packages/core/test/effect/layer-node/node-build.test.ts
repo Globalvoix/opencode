@@ -102,6 +102,8 @@ describe("node build", () => {
           update: () => Effect.die("not implemented"),
           activate: () => Effect.void,
           resolve: (directory) => Effect.succeed({ id: Project.ID.global, directory, canonical: directory }),
+          resolveWorkspace: (_workspaceID, directory) =>
+            Effect.succeed({ id: Project.ID.global, directory, canonical: directory }),
         })
       }),
     )

@@ -19,6 +19,12 @@ export const provider = "e2b"
 
 const METADATA_KEY = "thinksoft.workspace.id"
 
+/**
+ * The agent's working directory inside every sandbox. Ensured to exist at
+ * provision time so it is always a valid spawn cwd and listing root.
+ */
+export const SANDBOX_DIRECTORY = "/home/user/app"
+
 export const SANDBOX_TIMEOUT_MS = 3_600_000
 
 export function sandboxIdFromBinding(binding: WorkspaceDriver.Binding): string | undefined {
@@ -87,6 +93,10 @@ export const driver: WorkspaceDriver.Interface = {
           metadata: { [METADATA_KEY]: id },
           timeoutMs: SANDBOX_TIMEOUT_MS,
         }),
+      catch: (cause) => driverError("create", cause),
+    })
+    yield* Effect.tryPromise({
+      try: () => sandbox.files.makeDir(SANDBOX_DIRECTORY),
       catch: (cause) => driverError("create", cause),
     })
     return { binding: { sandboxId: sandbox.sandboxId } }

@@ -379,6 +379,7 @@ const EndpointSessionCreate = (raw: RawClient["server.session"]) => (input?: Ses
         agent: input?.["agent"],
         model: input?.["model"],
         location: input?.["location"],
+        sandbox: input?.["sandbox"],
         metadata: input?.["metadata"],
         permissions: input?.["permissions"],
       },
