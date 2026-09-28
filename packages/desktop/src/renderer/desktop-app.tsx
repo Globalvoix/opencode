@@ -78,6 +78,12 @@ export function DesktopApp(props: { api: ElectronAPI; updater: UpdaterPlatform; 
   const readyToReveal = () =>
     startup.ready &&
     (!import.meta.env.OPENCODE_TEST_ONBOARDING || !firstLaunch() || initialUrl !== "/" || startup.drawingReady)
+  // A backend that never answers rejects the sidecar resource (via the
+  // startup timeout) instead of resolving it. The error page renders through
+  // the boundary below, but nothing would ever set startup.ready, so the
+  // splash overlay must dismiss on failure too — otherwise it covers the
+  // error page with a forever-pulsing logo.
+  const startupFailed = () => sidecar.error !== undefined
 
   // Reveal only after the theme and the first-launch splash choice are both resolved.
   createEffect(() => {
@@ -164,9 +170,9 @@ export function DesktopApp(props: { api: ElectronAPI; updater: UpdaterPlatform; 
           <div
             data-component="startup-overlay"
             class="fixed inset-0 z-[100] transition-opacity duration-300 ease-out"
-            classList={{ "pointer-events-none opacity-0": readyToReveal() }}
+            classList={{ "pointer-events-none opacity-0": readyToReveal() || startupFailed() }}
             onTransitionEnd={(event) => {
-              if (event.target !== event.currentTarget || !readyToReveal()) return
+              if (event.target !== event.currentTarget || (!readyToReveal() && !startupFailed())) return
               setStartup("visible", false)
             }}
           >

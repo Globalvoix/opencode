@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { app } from "electron"
 import type { Endpoint } from "@opencode/client/service"
+import { backendServiceFile } from "./cli-service-file"
 
 // The main thread idles between showing the first window and evaluating the main bundle, waiting
 // for the renderer's asset requests. That slot is long enough to find out whether a compatible
@@ -16,9 +17,8 @@ export function startSidecarProbe() {
   if (!version) return
   // Probe this app's own registration file, never the shared default: without
   // the file the probe would adopt OpenCode's backend when both are installed.
-  const file = path.join(app.getPath("userData"), "opencode", "service.json")
   probe = import("@opencode/client/service")
-    .then(({ Service }) => Service.discover({ version, file }))
+    .then(({ Service }) => Service.discover({ version, file: backendServiceFile() }))
     .catch(() => undefined)
 }
 

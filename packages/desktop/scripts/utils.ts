@@ -105,6 +105,24 @@ export function versionFile(cli: string) {
   return join(dirname(cli), "opencode-cli.version")
 }
 
+// The staged CLI derives its registration filename from its baked channel
+// (ServiceConfig.filename in packages/cli/src/services/service-config.ts).
+// The desktop backend watches backendHome/opencode/<this file>, so the exact
+// name must travel with the binary. Keep this mapping in step with the CLI.
+export function cliServiceFilename(channel: string) {
+  if (channel === "latest" || channel === "dev" || channel === "beta" || channel === "next") return "service.json"
+  if (channel === "local") return "service-local.json"
+  return `service-${channel.replace(/[^a-zA-Z0-9._-]/g, "-")}.json`
+}
+
+export function serviceFilenameFile(cli: string) {
+  return join(dirname(cli), "opencode-cli.service")
+}
+
+export async function writeCliServiceFile(channel: string, dest = windowsify("resources/opencode-cli")) {
+  await Bun.write(serviceFilenameFile(dest), cliServiceFilename(channel) + "\n")
+}
+
 async function prepareCli(dest: string) {
   if (process.platform !== "win32") await chmod(dest, 0o755)
   if (process.platform === "win32" && process.env.GITHUB_ACTIONS === "true") {

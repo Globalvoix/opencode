@@ -3,6 +3,7 @@ import { Context, Effect, FileSystem, Layer, Path } from "effect"
 import { BackgroundServiceState } from "./background-service-state"
 import { cleanStages, DesktopCli } from "./desktop-cli"
 import { SidecarCredentials } from "./sidecar-credentials"
+import { backendHome, backendServiceFile } from "./cli-service-file"
 import { sidecarProbe } from "./sidecar-probe"
 
 export * as BackgroundService from "./background-service"
@@ -37,24 +38,26 @@ const connect = Effect.fn("BackgroundService.connect")(function* (mode: "initial
   const version = mode === "initial" ? cli.version : undefined
   if (isolated) process.env.XDG_STATE_HOME = app.getPath("userData")
   const client = yield* Effect.promise(() => import("@opencode/client/service"))
-  // The backend gets its own registration file and data directories under this
-  // app's userData. Sharing the default registry with OpenCode would adopt the
-  // other app's backend (or fight it over the registration), so Thinksoft and
-  // OpenCode each run an independent service with independent sessions.
-  const backendHome = path.join(app.getPath("userData"), "backend")
+  // The backend gets its own data directories under this app's userData.
+  // Sharing the default registry with OpenCode would adopt the other app's
+  // backend (or fight it over the registration), so Thinksoft and OpenCode
+  // each run an independent service with independent sessions. The file must
+  // be backendHome/opencode/<cli filename>: the child derives its registration
+  // path from XDG_STATE_HOME, so anything else boots invisibly and ensure()
+  // times out.
   const ensure = () =>
     client.Service.ensure({
       file:
         isolated && process.env.OPENCODE_DESKTOP_SERVER_CHANNEL === "local"
           ? path.join(app.getPath("userData"), "opencode", "service-local.json")
-          : path.join(app.getPath("userData"), "opencode", "service.json"),
+          : backendServiceFile(),
       version,
       command: [...cli.command, "serve", "--service", ...(isolated ? ["--hostname", "0.0.0.0", "--port", "0"] : [])],
       env: {
-        XDG_DATA_HOME: backendHome,
-        XDG_CONFIG_HOME: backendHome,
-        XDG_STATE_HOME: backendHome,
-        XDG_CACHE_HOME: backendHome,
+        XDG_DATA_HOME: backendHome(),
+        XDG_CONFIG_HOME: backendHome(),
+        XDG_STATE_HOME: backendHome(),
+        XDG_CACHE_HOME: backendHome(),
       },
       onStart: (reason, previousVersion) =>
         runFork(Effect.logInfo("v2 CLI background service starting", { reason, previousVersion })),
