@@ -4,9 +4,9 @@
 // `thinksoft-desktop-${os}-${arch}.${ext}` and publishes each file under
 // /files/bin/<version>/. Releases published before the rebrand used the
 // `opencode-desktop-` prefix, so the prefix stays configurable for older buckets.
-// The default now matches the v2.0.17-thinksoft release, which ships
-// `thinksoft-desktop-` artifacts.
-export const DESKTOP_VERSION = import.meta.env.VITE_DESKTOP_VERSION || "2.0.17-thinksoft"
+// The default now matches the v2.0.18-thinksoft release, which ships
+// `thinksoft-desktop-` artifacts with the independent Thinksoft backend.
+export const DESKTOP_VERSION = import.meta.env.VITE_DESKTOP_VERSION || "2.0.18-thinksoft"
 
 const ARTIFACT_PREFIX = import.meta.env.VITE_ARTIFACT_PREFIX || "thinksoft-desktop"
 
