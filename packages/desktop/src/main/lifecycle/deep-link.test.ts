@@ -3,8 +3,12 @@ import { consoleReturnWindow } from "./deep-link"
 
 describe("Console return deep links", () => {
   test("reads the originating Desktop window", () => {
+    expect(consoleReturnWindow("thinksoft://console/authorized?window=window-a")).toBe("window-a")
+    expect(consoleReturnWindow("thinksoft://console/authorized?window=window%20b")).toBe("window b")
+  })
+
+  test("accepts links from older installs", () => {
     expect(consoleReturnWindow("opencode://console/authorized?window=window-a")).toBe("window-a")
-    expect(consoleReturnWindow("opencode://console/authorized?window=window%20b")).toBe("window b")
   })
 
   test("rejects unrelated and malformed links", () => {

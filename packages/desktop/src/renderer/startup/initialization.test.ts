@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createSidecarResolver, initializationData } from "./initialization"
+import { createSidecarResolver, initializationData, withStartupTimeout } from "./initialization"
 
 describe("desktop renderer initialization", () => {
   test("throws the original initialization error before rendering server providers", () => {
@@ -43,6 +43,25 @@ describe("desktop renderer initialization", () => {
     expect(caught).toBeInstanceOf(Error)
     if (!(caught instanceof Error)) return
     expect(caught.message).toBe("")
+    expect((caught as Error & { localServerStartup?: boolean }).localServerStartup).toBe(true)
+  })
+
+  test("passes through a backend that answers in time", async () => {
+    const sidecar = { url: "http://127.0.0.1:4321" }
+    await expect(withStartupTimeout(Promise.resolve(sidecar), 1_000, "local server startup")).resolves.toBe(sidecar)
+  })
+
+  test("marks a hung backend as a local server startup failure", async () => {
+    let caught: unknown
+    try {
+      await withStartupTimeout(new Promise(() => {}), 5, "local server startup")
+    } catch (error) {
+      caught = error
+    }
+
+    expect(caught).toBeInstanceOf(Error)
+    if (!(caught instanceof Error)) return
+    expect(caught.message).toBe("local server startup timed out after 5 ms")
     expect((caught as Error & { localServerStartup?: boolean }).localServerStartup).toBe(true)
   })
 

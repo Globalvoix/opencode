@@ -25,7 +25,7 @@ import type { ElectronAPI } from "./api-types"
 import { DesktopFirstLaunchOnboarding } from "./onboarding"
 import { createDesktopPlatform } from "./platform"
 import { bindDesktopMenu } from "./platform/menu"
-import { createSidecarResolver, initializationData, sidecarHttp } from "./startup/initialization"
+import { createSidecarResolver, initializationData, sidecarHttp, withStartupTimeout } from "./startup/initialization"
 import { preloadStoredLocale } from "./startup/locale"
 import { LoadingSplash } from "./startup/splash"
 import { getLastActiveUrl } from "./window/route-storage"
@@ -60,7 +60,11 @@ export function DesktopApp(props: { api: ElectronAPI; updater: UpdaterPlatform; 
         }),
   )
   const platform = createDesktopPlatform(props.api, windowState, props.updater)
-  const [sidecar, { mutate: setSidecar }] = createResource(() => props.api.awaitInitialization())
+  const [sidecar, { mutate: setSidecar }] = createResource(() =>
+    // First launch stages a 200 MB CLI copy while antivirus scans it; even so,
+    // a backend that never answers must surface the error page, not spin forever.
+    withStartupTimeout(props.api.awaitInitialization(), 120_000, "local server startup"),
+  )
   const [defaultServer] = createResource(async () => {
     if (bootstrap.defaultServerUrl === undefined) return platform.getDefaultServer?.()
     return bootstrap.defaultServerUrl ? ServerConnection.Key.make(bootstrap.defaultServerUrl) : null

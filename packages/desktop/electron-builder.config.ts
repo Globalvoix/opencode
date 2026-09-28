@@ -11,11 +11,6 @@ const execFileAsync = promisify(execFile)
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(packageDir, "../..")
 const signScript = path.join(rootDir, "script", "sign-windows.ps1")
-// The Electron 42 packaging update briefly installed Linux launchers/icons under
-// "opencode-desktop". Keep that hidden desktop entry around so existing GNOME/KDE
-// pins still resolve after the canonical app id changes back to ai.opencode.desktop.
-const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "opencode-desktop.desktop")
-const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/opencode-desktop.desktop`
 
 const metainfoFpm = (appId: string) =>
   `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
@@ -51,9 +46,9 @@ const channel = (() => {
 })()
 
 const APP_IDS = {
-  dev: "ai.opencode.desktop.dev",
-  beta: "ai.opencode.desktop.beta",
-  prod: "ai.opencode.desktop",
+  dev: "ai.thinksoft.desktop.dev",
+  beta: "ai.thinksoft.desktop.beta",
+  prod: "ai.thinksoft.desktop",
 } as const
 
 const getBase = (appId: string): Configuration => ({
@@ -63,8 +58,8 @@ const getBase = (appId: string): Configuration => ({
     buildResources: "resources",
   },
   // Linux launchers are .desktop files, so this is the desktop file name,
-  // not just the app id. For prod, app id "ai.opencode.desktop" becomes
-  // "ai.opencode.desktop.desktop".
+  // not just the app id. For prod, app id "ai.thinksoft.desktop" becomes
+  // "ai.thinksoft.desktop.desktop".
   // https://developer.gnome.org/documentation/guidelines/maintainer/integrating.html
   // https://www.electron.build/docs/linux/
   extraMetadata: {
@@ -127,7 +122,7 @@ const getBase = (appId: string): Configuration => ({
   },
   protocols: {
     name: "Thinksoft",
-    schemes: ["opencode"],
+    schemes: ["thinksoft"],
   },
   win: {
     icon: `resources/icons/icon.ico`,
@@ -169,8 +164,8 @@ function getConfig() {
         ...base,
         appId,
         productName: "Thinksoft Dev",
-        deb: { fpm: [metainfoFpm(appId)] },
-        rpm: { packageName: "opencode-dev", fpm: [metainfoFpm(appId)] },
+        deb: { packageName: "thinksoft-desktop-dev", fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "thinksoft-desktop-dev", fpm: [metainfoFpm(appId)] },
       }
     }
     case "beta": {
@@ -178,14 +173,9 @@ function getConfig() {
         ...base,
         appId,
         productName: "Thinksoft Beta",
-        protocols: { name: "Thinksoft Beta", schemes: ["opencode"] },
-        publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/beta/desktop/opencode/",
-          channel: "latest",
-        },
-        deb: { fpm: [metainfoFpm(appId)] },
-        rpm: { packageName: "opencode-beta", fpm: [metainfoFpm(appId)] },
+        protocols: { name: "Thinksoft Beta", schemes: ["thinksoft"] },
+        deb: { packageName: "thinksoft-desktop-beta", fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "thinksoft-desktop-beta", fpm: [metainfoFpm(appId)] },
       }
     }
     case "prod": {
@@ -193,14 +183,9 @@ function getConfig() {
         ...base,
         appId,
         productName: "Thinksoft",
-        protocols: { name: "Thinksoft", schemes: ["opencode"] },
-        publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/latest/desktop/opencode/",
-          channel: "latest",
-        },
-        deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
-        rpm: { packageName: "opencode", fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
+        protocols: { name: "Thinksoft", schemes: ["thinksoft"] },
+        deb: { packageName: "thinksoft-desktop", fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "thinksoft-desktop", fpm: [metainfoFpm(appId)] },
       }
     }
   }

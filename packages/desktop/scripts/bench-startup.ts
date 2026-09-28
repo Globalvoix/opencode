@@ -109,7 +109,7 @@ const env = {
   OPENCODE_DB: paths.db,
   OPENCODE_CONFIG_DIR: paths.config,
   // Beta and prod builds check for updates on start; a closed proxy port fails that fast and offline.
-  ...(args.values.offline || appId !== "ai.opencode.desktop.dev" ? { HTTPS_PROXY: "http://127.0.0.1:9" } : {}),
+  ...(args.values.offline || appId !== "ai.thinksoft.desktop.dev" ? { HTTPS_PROXY: "http://127.0.0.1:9" } : {}),
 }
 const cdpPort = await freePort()
 // A private service port keeps a cold launch's own service away from the developer's service.
@@ -478,9 +478,9 @@ function defaultExe() {
 
 function appIdFor(executable: string) {
   const name = basename(executable, ".exe")
-  if (/beta/i.test(name)) return "ai.opencode.desktop.beta"
-  if (/dev/i.test(name)) return "ai.opencode.desktop.dev"
-  return "ai.opencode.desktop"
+  if (/beta/i.test(name)) return "ai.thinksoft.desktop.beta"
+  if (/dev/i.test(name)) return "ai.thinksoft.desktop.dev"
+  return "ai.thinksoft.desktop"
 }
 
 function prepareHome() {

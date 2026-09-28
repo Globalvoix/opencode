@@ -67,7 +67,9 @@ const runtime = Layer.effect(
       )
     }
     const secondInstance = (_event: Event, argv: string[]) => {
-      const urls = argv.filter((arg) => arg.startsWith("opencode://"))
+      // Thinksoft owns thinksoft://; opencode:// is accepted so links created
+      // by older installs still land in the running app instead of OpenCode.
+      const urls = argv.filter((arg) => arg.startsWith("thinksoft://") || arg.startsWith("opencode://"))
       if (urls.length) {
         runFork(Effect.logInfo("deep link received via second-instance", { urls }))
         focusWindow(emitDeepLinks(urls) ?? null)

@@ -7,6 +7,20 @@ export function initializationData<A>(state: (() => A | undefined) & { error: un
   return state()
 }
 
+/**
+ * Bounds a startup wait that otherwise never settles. The splash overlay only
+ * dismisses once every startup resource resolves, so a hung backend promise
+ * would spin the loading animation forever; timing out surfaces the error
+ * page (with its restart action) instead.
+ */
+export function withStartupTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(markLocalServerStartup(new Error(`${label} timed out after ${ms} ms`))), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
 // The main process adds Authorization to sidecar requests (`wireRendererHeaders`); the renderer never
 // holds the password, and its GETs carry only CORS-safelisted headers so they skip the preflight.
 export function sidecarHttp(data: SidecarData) {

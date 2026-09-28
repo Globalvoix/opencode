@@ -14,8 +14,11 @@ export function startSidecarProbe() {
   if (!app.isPackaged) return
   const version = bundledVersion()
   if (!version) return
+  // Probe this app's own registration file, never the shared default: without
+  // the file the probe would adopt OpenCode's backend when both are installed.
+  const file = path.join(app.getPath("userData"), "opencode", "service.json")
   probe = import("@opencode/client/service")
-    .then(({ Service }) => Service.discover({ version }))
+    .then(({ Service }) => Service.discover({ version, file }))
     .catch(() => undefined)
 }
 

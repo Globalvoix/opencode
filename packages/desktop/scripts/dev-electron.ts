@@ -26,7 +26,7 @@ export async function prepareDevElectron() {
   for (const key of ["CFBundleName", "CFBundleDisplayName"]) {
     await $`plutil -replace ${key} -string ${"Thinksoft Dev"} ${plist}`
   }
-  await $`plutil -replace CFBundleIdentifier -string ai.opencode.desktop.dev ${plist}`
+  await $`plutil -replace CFBundleIdentifier -string ai.thinksoft.desktop.dev ${plist}`
   await $`plutil -insert NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac -bool true ${plist}`
   await Bun.write(join(bundle, "Contents/Resources/electron.icns"), icon)
   // Changing the bundle resources invalidates Electron's signature.

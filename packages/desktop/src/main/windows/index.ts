@@ -157,6 +157,7 @@ export const makeMainWindows = Effect.fn("Window.make")(function* () {
     const reveal = () => {
       if (!contentReady || !appliedTheme || revealed || win.isDestroyed()) return
       revealed = true
+      clearTimeout(themeFallback)
       win.show()
       focusForTests()
       runFork(Effect.logInfo("main window visible", { window: id }))
@@ -169,9 +170,20 @@ export const makeMainWindows = Effect.fn("Window.make")(function* () {
       appliedTheme = true
       reveal()
     })
+    // If the renderer never reports its theme (crashed bundle, blocked IPC),
+    // the window would otherwise stay hidden behind the splash forever. Reveal
+    // anyway after a grace period; the renderer's error boundary covers the
+    // underlying failure. The timer is cleared on reveal and on close.
+    const themeFallback = setTimeout(() => {
+      appliedTheme = true
+      reveal()
+    }, 30_000)
     win.once("ready-to-show", ready)
     if (process.platform === "linux") win.webContents.once("did-finish-load", ready)
-    win.once("closed", () => themeReady.delete(win))
+    win.once("closed", () => {
+      clearTimeout(themeFallback)
+      themeReady.delete(win)
+    })
     return win
   }
 

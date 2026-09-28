@@ -8,8 +8,11 @@
 ;
 ; Branded values here must stay in step with packages/desktop/electron-builder.config.ts:
 ;   productName  Thinksoft          -> AppName, shortcuts, setup title
-;   appId        ai.opencode.desktop -> DefaultDirName
-;   APP_GUID     d074f30d-...        -> AppId, matched without braces to the old key
+;   appId        ai.thinksoft.desktop -> Uninstall GUID below (UUID v5 of the
+;     app id under electron-builder's 50e065bc-3134-11e6-9bab-38c9862bdaf3
+;     namespace). A fresh GUID keeps Windows from treating Thinksoft as
+;     OpenCode: sharing OpenCode's d074f30d-... id made setup report "app
+;     already running" and let one app adopt the other's install.
 ;   author       Thinksoft          -> AppPublisher
 
 #define AppName "Thinksoft"
@@ -17,8 +20,8 @@
 #define AppExeName "Thinksoft.exe"
 #define AppDirName "thinksoft-desktop"
 ; electron-builder writes this uninstall key without braces, so the id must match it
-; exactly for Inno to treat the old build as a previous version of this app.
-#define AppId "d074f30d-5f88-5885-b075-be1348cc7676"
+; exactly for Inno to treat the old Thinksoft build as a previous version of this app.
+#define AppId "8dc76879-5e9b-579e-8a7e-3f494362da44"
 #define SourceDir "dist\win-unpacked"
 #define OutputDir "dist"
 
